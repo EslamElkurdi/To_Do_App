@@ -16,4 +16,6 @@ class ChangeBottomSheetShownState extends ToDoAppStates {}
 
 class UpdateDataBaseState extends ToDoAppStates {}
 
+class DeleteDataBaseState extends ToDoAppStates {}
+
 

@@ -153,4 +153,14 @@ class ToDoAppCubit extends Cubit<ToDoAppStates>
     });
   }
 
+  void deleteDB({
+    required int id
+  }) async
+  {
+    database.rawDelete('DELETE FROM tasks WHERE id = ?', [id]).then((value){
+      getDataFromDatabase(database);
+      emit(DeleteDataBaseState());
+    });
+  }
+
 }
