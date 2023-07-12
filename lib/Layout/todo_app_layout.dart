@@ -1,3 +1,4 @@
+import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
@@ -6,6 +7,7 @@ import 'package:todoapp/Shared/components/component.dart';
 
 import '../Modules/archived_tasks.dart';
 import '../Modules/new_tasks.dart';
+import '../Shared/constants/constants.dart';
 
 class ToDoApp extends StatefulWidget {
   const ToDoApp({Key? key}) : super(key: key);
@@ -43,6 +45,8 @@ class _ToDoAppState extends State<ToDoApp> {
   final timeController = TextEditingController();
   final dateController = TextEditingController();
 
+
+
   @override
   void initState() {
     // TODO: implement initState
@@ -58,13 +62,17 @@ class _ToDoAppState extends State<ToDoApp> {
       appBar: AppBar(
         title: titleScreen[currentIndex],
       ),
-      body: screens[currentIndex],
+      body: ConditionalBuilder(
+        condition: taskResult!.length > 0,
+        builder: (context) => screens[currentIndex],
+        fallback: (context) => Center(child: CircularProgressIndicator()),
+      ),
       floatingActionButton: FloatingActionButton(
           onPressed: () {
             if(isBottomSheetShown){
 
               if(formKey.currentState!.validate()){
-                
+
                 insertToDatabase(title: titleController.text, date: dateController.text, time: timeController.text)
                     .then((value){
                   Navigator.pop(context);
@@ -73,14 +81,13 @@ class _ToDoAppState extends State<ToDoApp> {
                     fabIcon = Icon(Icons.edit);
                   });
                 });
-                
+
 
               }
             }else{
               scaffoldKey.currentState?.showBottomSheet(
                       elevation: 15,
                       (context) => Container(
-
                         padding:const EdgeInsets.all(20),
                         color: Colors.grey[250],
                         child: Form(
@@ -162,7 +169,13 @@ class _ToDoAppState extends State<ToDoApp> {
                     ],
                   ),
                         ),
-                      ));
+                      )
+              ).closed.then((value){
+                isBottomSheetShown = false;
+                setState(() {
+                  fabIcon = Icon(Icons.edit);
+                });
+              });
               isBottomSheetShown = true;
               setState(() {
                 fabIcon = Icon(Icons.add);
@@ -209,7 +222,7 @@ class _ToDoAppState extends State<ToDoApp> {
       {
         print("Database is created");
 
-        database.execute('CREATE TABLE tasks (id PRIMARY KEY, title TEXT, date TEXT, time TEXT, status TEXT)').then((value){
+        database.execute('CREATE TABLE tasks (id INTEGER PRIMARY KEY, title TEXT, date TEXT, time TEXT, status TEXT)').then((value){
           print("Table is Created");
         }).catchError((error){
           print("Error while creating table ${error.toString()}");
@@ -220,6 +233,11 @@ class _ToDoAppState extends State<ToDoApp> {
       {
         print("Database is opened");
 
+        getDataFromDatabase(database).then((value){
+          print(value);
+          taskResult = value;
+          print(taskResult);
+        });
       }
     );
   }
@@ -239,6 +257,10 @@ class _ToDoAppState extends State<ToDoApp> {
 
       });
     });
-    return;
+  }
+
+  Future<List<Map>> getDataFromDatabase(database) async
+  {
+    return await database.rawQuery('SELECT * FROM tasks');
   }
 }
