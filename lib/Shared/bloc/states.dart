@@ -14,4 +14,6 @@ class InsertToDatabaseState extends ToDoAppStates {}
 
 class ChangeBottomSheetShownState extends ToDoAppStates {}
 
+class UpdateDataBaseState extends ToDoAppStates {}
+
 

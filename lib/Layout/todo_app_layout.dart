@@ -64,30 +64,17 @@ class ToDoApp extends StatelessWidget
             body: ConditionalBuilder(
               condition: state  is! GetLoadingState,
               builder: (context) => cubit.screens[cubit.currentIndex],
-              fallback: (context) => Center(child: CircularProgressIndicator()),
+              fallback: (context) => const Center(child: CircularProgressIndicator()),
             ),
             floatingActionButton: FloatingActionButton(
                 onPressed: () {
                   if(cubit.isBottomSheetShown){
-
                     if(formKey.currentState!.validate()){
-                      print("hi");
                       cubit.insertToDatabase(
                           title: titleController.text,
                           date: dateController.text,
                           time: timeController.text
                       );
-
-                      // insertToDatabase(title: titleController.text, date: dateController.text, time: timeController.text)
-                      //     .then((value){
-                      //   Navigator.pop(context);
-                      //   isBottomSheetShown = false;
-                      //   // setState(() {
-                      //   //   fabIcon = Icon(Icons.edit);
-                      //   // });
-                      // });
-
-
                     }
                   }else{
                     scaffoldKey.currentState?.showBottomSheet(
@@ -189,7 +176,6 @@ class ToDoApp extends StatelessWidget
                   }
                 },
                 child: fabIcon
-
             ),
             bottomNavigationBar: BottomNavigationBar(
               currentIndex: cubit.currentIndex,

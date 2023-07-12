@@ -21,6 +21,11 @@ class ToDoAppCubit extends Cubit<ToDoAppStates>
     DoneTasksScreen(),
     ArchivedTasksScreen()
   ];
+
+  List<Map> newTasks = [];
+  List<Map> doneTasks = [];
+  List<Map> archivedTasks = [];
+
   List<Widget> titleScreen =
   [
     Text("New Tasks"),
@@ -56,16 +61,14 @@ class ToDoAppCubit extends Cubit<ToDoAppStates>
 
         onOpen: (database)
         {
+
+
+
           emit(GetLoadingState());
 
           print("Database is opened");
 
-          getDataFromDatabase(database).then((value){
-            print(value);
-            taskResult = value;
-            print(taskResult);
-            emit(GetDatabaseState());
-          });
+          getDataFromDatabase(database);
         }
     ).then((value){
         database = value;
@@ -85,11 +88,8 @@ class ToDoAppCubit extends Cubit<ToDoAppStates>
           .then((value){
         print("Item is Inserted Successfully ${value.toString()}");
         emit(InsertToDatabaseState());
-        getDataFromDatabase(database).then((value){
-          taskResult = value;
-          print(taskResult);
-          emit(GetDatabaseState());
-        });
+
+        getDataFromDatabase(database);
 
       }).catchError((error){
         print("Error is happened ${error.toString()}");
@@ -98,10 +98,31 @@ class ToDoAppCubit extends Cubit<ToDoAppStates>
     });
   }
 
-  Future<List<Map>> getDataFromDatabase(database) async
+  void getDataFromDatabase(database)
   {
+
+    newTasks = [];
+    archivedTasks = [];
+    doneTasks = [];
+
     emit(GetLoadingState());
-    return await database.rawQuery('SELECT * FROM tasks');
+     database.rawQuery('SELECT * FROM tasks').then((value){
+
+       value.forEach((element) {
+
+         print("IIIIIIIIIIIIIIIIAAAAAAAAAAAMMMMMMMMMMMMM");
+
+         print(element['status']);
+         if(element['status'] == 'done') {
+           doneTasks.add(element);
+         } else if(element['status'] == 'New Task') {
+           newTasks.add(element);
+         } else {
+           archivedTasks.add(element);
+         }
+       });
+       emit(GetDatabaseState());
+     });
 
 
   }
@@ -116,6 +137,20 @@ class ToDoAppCubit extends Cubit<ToDoAppStates>
 }){
     isBottomSheetShown = isShow;
     emit(ChangeBottomSheetShownState());
+  }
+
+  void UpdateDB({
+    required String status,
+    required int id
+  }) async
+  {
+    database.rawUpdate(
+      'UPDATE tasks SET status = ? WHERE id = ?',
+      [status, id],).then((value){
+      print(">>>>>>>>>>>>>$id");
+      getDataFromDatabase(database);
+      emit(UpdateDataBaseState());
+    });
   }
 
 }
